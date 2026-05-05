@@ -1,0 +1,46 @@
+name: Check YouSee Driftsstatus
+
+on:
+  schedule:
+    # Runs every 15 minutes. GitHub Actions minimum is 5 min,
+    # but 15 min is a good balance between freshness and free-tier usage.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    # Lets you trigger a manual run from the GitHub Actions UI
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # required to commit state.json back to the repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run YouSee checker
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          YOUSEE_MAD_ID:       ${{ secrets.YOUSEE_MAD_ID }}
+          YOUSEE_NAM_ID:       ${{ secrets.YOUSEE_NAM_ID }}
+          YOUSEE_DAWA_ID:      ${{ secrets.YOUSEE_DAWA_ID }}
+          YOUSEE_AMS_ID:       ${{ secrets.YOUSEE_AMS_ID }}
+        run: python checker.py
+
+      - name: Commit updated state
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          # Only commit if state.json actually changed
+          git diff --staged --quiet || git commit -m "chore: update state [skip ci]"
+          git push
