@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test / coverage
+.pytest_cache/
+pytest-cache-files-*/
+.coverage
+htmlcov/
+*.cover
+
+# Debug output from checker
+debug_page.html
+
+# OS
+.DS_Store
+Thumbs.db
